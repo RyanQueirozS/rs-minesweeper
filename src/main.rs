@@ -8,68 +8,77 @@ struct Cell {
 }
 
 fn generate_begginer_board() -> [[Cell; 9]; 9] {
-    let mines = 10;
-
+    let mut _count = 0;
     let mut board = [[Cell {
         number: 0,
         is_clicked: false,
     }; 9]; 9];
-    let duration = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("Time went backwards");
-    rand::srand(duration.as_millis() as u64);
 
-    for mut _i in 1..mines {
-        let rngx = rand::gen_range(0, board.len() - 1);
-        let rngy = rand::gen_range(0, board.len() - 1);
+    {
+        let duration = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("Time went backwards");
+        rand::srand(duration.as_millis() as u64);
+    }
+
+    loop {
+        let rngx = rand::gen_range(0, board.len());
+        let rngy = rand::gen_range(0, board.len());
 
         if board[rngx][rngy].number != 9 {
             board[rngx][rngy] = Cell {
-                number: 9,
+                number: 9, // 9 will be the mine number
                 is_clicked: false,
-            }
-        } else {
-            _i = 1;
+            };
+            _count += 1;
+        }
+        if _count == 10 {
+            break;
         }
     }
 
     return board;
 }
 
-#[macroquad::main("Game")]
+#[macroquad::main("Minesweeper")]
 async fn main() {
-    loop {
-        let board: [[Cell; 9]; 9] = generate_begginer_board();
+    let board: [[Cell; 9]; 9] = generate_begginer_board();
 
-        let mut count = 0;
-        for i in 0..9 {
-            for j in 0..9 {
-                if board[i][j].number == 9 {
-                    count += 1;
-                }
+    for i in 0..board.len() {
+        for j in 0..board[i].len() {
+            print!("{} ", board[i][j].number);
+        }
+        println!();
+    }
+
+    loop {
+        request_new_screen_size(1024.0, 768.0);
+
+        let cell_width = screen_width() / board.len() as f32;
+        let cell_height = screen_height() / board[0].len() as f32;
+
+        clear_background(BLACK);
+        for i in 0..board.len() {
+            for j in 0..board[i].len() {
+                draw_rectangle(
+                    cell_width * i as f32,
+                    cell_height * j as f32,
+                    cell_width - 1.0,
+                    cell_height - 1.0,
+                    DARKGRAY,
+                );
+                // if board[i][j].number == 9 {
+                let number = board[i][j].number;
+                draw_text(
+                    &number.to_string(),
+                    cell_width * i as f32,
+                    cell_height * j as f32 + cell_height,
+                    100.0,
+                    BLACK,
+                )
+                // }
             }
         }
-        if count != 9 {
-            println!("{count}");
-        }
+        next_frame().await;
     }
-    // loop {
-    //     let _cell_width = screen_width() / board.len() as f32;
-    //     let _cell_height = screen_height() / board[0].len() as f32;
-
-    // clear_background(BLACK);
-    // request_new_screen_size(1024.0, 768.0);
-    // for i in 0..(&board).len() {
-    //     for j in 0..(&board[0]).len() {
-    //         draw_rectangle(
-    //             _cell_width * i as f32,
-    //             _cell_height * j as f32,
-    //             _cell_width - 1.0,
-    //             _cell_height - 1.0,
-    //             DARKGRAY,
-    //         );
-    //     }
-    // }
-    // next_frame().await;
-    // }
 }
