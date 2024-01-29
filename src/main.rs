@@ -8,32 +8,57 @@ struct Cell {
 }
 
 fn generate_begginer_board() -> [[Cell; 9]; 9] {
-    let mut _count = 0;
+    let mut count = 0;
     let mut board = [[Cell {
         number: 0,
         is_clicked: false,
     }; 9]; 9];
 
-    {
-        let duration = SystemTime::now()
+    rand::srand(
+        SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .expect("Time went backwards");
-        rand::srand(duration.as_millis() as u64);
-    }
+            .expect("Time went backwards")
+            .as_millis() as u64,
+    );
 
     loop {
-        let rngx = rand::gen_range(0, board.len());
-        let rngy = rand::gen_range(0, board.len());
+        let x = rand::gen_range(0, board.len());
+        let y = rand::gen_range(0, board[x].len());
 
-        if board[rngx][rngy].number != 9 {
-            board[rngx][rngy] = Cell {
+        if board[x][y].number != 9 {
+            board[x][y] = Cell {
                 number: 9, // 9 will be the mine number
                 is_clicked: false,
             };
-            _count += 1;
+            count += 1;
         }
-        if _count == 10 {
+        if count == 10 {
             break;
+        }
+    }
+
+    for i in 0..board.len() {
+        for j in 0..board[i].len() {
+            if board[i][j].number != 9 {
+                count = 0;
+                for x in 0..=2 {
+                    for y in 0..=2 {
+                        let new_x = (i as isize + x as isize - 1) as usize;
+                        let new_y = (j as isize + y as isize - 1) as usize;
+
+                        if new_x < board.len()
+                            && new_y < board[i].len()
+                            && board[new_x][new_y].number == 9
+                        {
+                            count += 1;
+                        }
+                    }
+                }
+                board[i][j] = Cell {
+                    number: count,
+                    is_clicked: false,
+                };
+            }
         }
     }
 
@@ -68,7 +93,7 @@ async fn main() {
                     DARKGRAY,
                 );
                 // if board[i][j].number == 9 {
-                let number = board[i][j].number;
+                let number = board[j][i].number;
                 draw_text(
                     &number.to_string(),
                     cell_width * i as f32,
