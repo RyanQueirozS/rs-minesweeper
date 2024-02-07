@@ -6,7 +6,7 @@ Simple minesweeper clone writen in rust with macroquad
 ```bash
 git clone https://github.com/RyanQueirozS/rs-minesweeper.git
 cd rs-minesweeper
-cargo run (difficulty)
+cargo run <difficulty>
 ```
 
 NOTE: difficulties are: 
